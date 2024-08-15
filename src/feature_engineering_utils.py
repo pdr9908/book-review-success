@@ -1,5 +1,5 @@
 from textblob import TextBlob
-from spacy.tokens import Doc
+from spacy.tokens import Doc, Span
 from collections import Counter
 import re
 import numpy as np
@@ -100,7 +100,8 @@ def repeated_words_count(text: str) -> int:
     return repeated_words
 
 
-def get_sent_score(sentence):
+def get_sent_score(sentence: Span) -> float:
+    """Return the sentiment polarity of `sentence`, a spaCy sentence."""
     return TextBlob(sentence).sentiment.polarity
 
 
@@ -127,7 +128,10 @@ def get_sentiment(doc: Doc) -> tuple[float, float, float, float]:
 # TFIDF, text complexity, num characters total, avg word length
 
 
-def get_df_features(df: pd.DataFrame) -> pd.DataFrame:
+def get_df_text_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Return the same `df` with new columns containing all the
+    text features.
+    """
     pos_tags_df = (
         df.nlp_text.apply(lambda x: count_pos_tags(x))
         .apply(pd.Series)
@@ -156,7 +160,8 @@ def get_df_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def get_text_features(text: str):
+def get_text_features(text: str) -> np.ndarray:
+    """Return the engineered features of `text` in the correct order."""
     doc = nlp(text)
 
     output_dict = count_pos_tags(doc)
