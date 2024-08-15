@@ -132,6 +132,7 @@ def get_df_text_features(df: pd.DataFrame) -> pd.DataFrame:
     """Return the same `df` with new columns containing all the
     text features.
     """
+    df["nlp_text"] = df.review_text.apply(lambda x: nlp(x))
     pos_tags_df = (
         df.nlp_text.apply(lambda x: count_pos_tags(x))
         .apply(pd.Series)
