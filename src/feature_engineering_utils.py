@@ -3,6 +3,10 @@ from spacy.tokens import Doc
 from collections import Counter
 import re
 import numpy as np
+import pandas as pd
+import spacy
+
+nlp = spacy.load("en_core_web_sm")
 
 
 def count_pos_tags(doc: Doc) -> dict[str, int]:
@@ -121,3 +125,54 @@ def get_sentiment(doc: Doc) -> tuple[float, float, float, float]:
 
 # TODO: readability scores, keyword presence, text complexity, BOW,
 # TFIDF, text complexity, num characters total, avg word length
+
+
+def get_df_features(df: pd.DataFrame) -> pd.DataFrame:
+    pos_tags_df = (
+        df.nlp_text.apply(lambda x: count_pos_tags(x))
+        .apply(pd.Series)
+        .fillna(0)
+        .astype(int)
+    )
+    df = df.join(pos_tags_df)
+    df["num_hapaxes"] = df.nlp_text.apply(lambda x: count_hapaxes(x))
+    df["num_words"] = df.nlp_text.apply(lambda x: word_count(x))
+    df["num_stopwords"] = df.nlp_text.apply(lambda x: stopword_count(x))
+    df["num_entities"] = df.nlp_text.apply(lambda x: entity_count(x))
+    df["num_uppercase"] = df.nlp_text.apply(lambda x: upper_count(x))
+    df["num_expunct"] = df.review_text.apply(
+        lambda x: excessive_punctuation_count(x),
+    )
+    df["num_repeat_chars"] = df.review_text.apply(
+        lambda x: repeated_characters_count(x)
+    )
+    df["num_repeat_words"] = df.review_text.apply(
+        lambda x: repeated_words_count(x),
+    )
+    df[["avg_sent", "max_sent", "min_sent", "std_sent"]] = df.nlp_text.apply(
+        lambda x: get_sentiment(x)
+    ).apply(pd.Series)
+
+    return df
+
+
+def get_text_features(text: str):
+    doc = nlp(text)
+
+    output_dict = count_pos_tags(doc)
+    output_dict["num_hapaxes"] = count_hapaxes(doc)
+    output_dict["num_words"] = word_count(doc)
+    output_dict["num_stopwords"] = stopword_count(doc)
+    output_dict["num_entities"] = entity_count(doc)
+    output_dict["num_uppercase"] = upper_count(doc)
+    output_dict["num_expunct"] = excessive_punctuation_count(text)
+    output_dict["num_repeat_chars"] = repeated_characters_count(text)
+    output_dict["num_repeat_words"] = repeated_words_count(text)
+    avg_sent, max_sent, min_sent, std_sent = get_sentiment(doc)
+    output_dict["avg_sent"] = avg_sent
+    output_dict["min_sent"] = min_sent
+    output_dict["max_sent"] = max_sent
+    output_dict["std_sent"] = std_sent
+
+    values = np.array([output_dict[key] for key in output_dict])
+    return values
