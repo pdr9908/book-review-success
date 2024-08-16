@@ -113,7 +113,12 @@ def get_sentiment(doc: Doc) -> tuple[float, float, float, float]:
     # Segment into sentences
     sentences = [sent.text for sent in doc.sents]
     if len(sentences) <= 1:
-        return get_sent_score(doc), get_sent_score(doc), get_sent_score(doc), 0
+        return (
+            get_sent_score(sentences[0]),
+            get_sent_score(sentences[0]),
+            get_sent_score(sentences[0]),
+            0,
+        )
 
     sentiment_scores = [get_sent_score(sentence) for sentence in sentences]
     average_sentiment = np.mean(sentiment_scores)
@@ -133,6 +138,9 @@ def get_df_text_features(df: pd.DataFrame) -> pd.DataFrame:
     text features.
     """
     df["nlp_text"] = df.review_text.apply(lambda x: nlp(x))
+    df[["avg_sent", "max_sent", "min_sent", "std_sent"]] = df.nlp_text.apply(
+        lambda x: get_sentiment(x)
+    ).apply(pd.Series)
     pos_tags_df = (
         df.nlp_text.apply(lambda x: count_pos_tags(x))
         .apply(pd.Series)
@@ -154,9 +162,6 @@ def get_df_text_features(df: pd.DataFrame) -> pd.DataFrame:
     df["num_repeat_words"] = df.review_text.apply(
         lambda x: repeated_words_count(x),
     )
-    df[["avg_sent", "max_sent", "min_sent", "std_sent"]] = df.nlp_text.apply(
-        lambda x: get_sentiment(x)
-    ).apply(pd.Series)
 
     return df
 

@@ -3,7 +3,7 @@ import sys
 
 sys.path.append(".")
 
-from src.script_utils.data_processing_utils import process_chunks  # noqa: E402
+from src.data_processing_utils import process_chunks  # noqa: E402
 
 
 def main():
