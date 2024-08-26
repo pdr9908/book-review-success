@@ -3,7 +3,9 @@ import sys
 
 sys.path.append(".")
 
-from src.data_processing_utils import process_chunks  # noqa: E402
+from src.data_preparation.data_processing_utils import (  # noqa: E402, E501
+    process_chunks,
+)
 
 
 def main():
@@ -34,14 +36,14 @@ def main():
         "-o",
         "--output_prefix",
         type=str,
-        default="data/processing/output_",
+        default="data/processed/processed_chunk_",
         help="Prefix for the output files.",
     )
     parser.add_argument(
         "-st",
         "--state_file",
         type=str,
-        default="data/processing/processing_state.txt",
+        default="data/processed/processing_state.txt",
         help="",
     )
 
